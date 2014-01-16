@@ -1,0 +1,6 @@
+build/
+debian/mlockexec.substvars
+debian/mlockexec.debhelper.log
+debian/mlockexec/
+mlockexec.egg-info/
+*.pyc
