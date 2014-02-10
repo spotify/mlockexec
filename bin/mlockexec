@@ -21,6 +21,7 @@ import sys
 import subprocess
 from mlockexec import util
 from mlockexec import file_locker
+import lockfile
 
 # Parse options
 
@@ -29,6 +30,9 @@ parser.add_option("-m", "--max-memory", dest="maxmemory",
                   help="maximum amount of memory to lock.", metavar="MEMORY", action="store")
 parser.add_option("-g", "--glob", dest="glob",
                   help="glob expression for files to lock", metavar="GLOB", action="append")
+parser.add_option("-l", "--lock-file", dest="lockfile",
+                  help="lockfile to use for coordinating multiple instances of mlockexec",
+                  metavar="LOCKFILE", action="store")
 parser.add_option("-v", "--verbose", dest="verbose",
                   help="Print verbose information", action="store_true")
 
@@ -50,14 +54,24 @@ if total_size > maxmemory:
 
 # Lock all the files
 
-locked_files = []
-for f in files:
+def mlock_files():
+    mlocked_files = []
+    for f in files:
+        if options.verbose:
+            print("locking %s" % f, file=sys.stderr)
+        mlocked_files.append(file_locker.FileLocker(f))
     if options.verbose:
-        print("locking %s" % f, file=sys.stderr)
-    locked_files.append(file_locker.FileLocker(f))
+        print("locked %d files in %d bytes" % (len(files), total_size), file=sys.stderr)
 
-if options.verbose:
-    print("locked %d files in %d bytes" % (len(files), total_size), file=sys.stderr)
+if options.lockfile is not None:
+    lock = lockfile.FileLock(options.lockfile)
+    if options.verbose and lock.is_locked():
+        print("waiting for lockfile: %s" % (options.lockfile), file=sys.stderr)
+    with lock:
+        mlock_files()
+else:
+    mlock_files()
+
 
 # Start the actual wanted command
 sys.exit(subprocess.Popen(args).wait())

@@ -15,6 +15,7 @@ setup(name='mlockexec',
       license='Apache Software License 2.0',
       scripts=['bin/mlockexec'],
       packages=['mlockexec'],
+      install_requires=['lockfile'],
       classifiers=[
           'License :: OSI Approved :: Apache Software License',
           'Topic :: Utilities',
