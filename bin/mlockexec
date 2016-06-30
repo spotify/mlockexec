@@ -53,9 +53,9 @@ if total_size > maxmemory:
     raise Exception("total size is %d but maxmemory is only %d" % (total_size, maxmemory))
 
 # Lock all the files
+mlocked_files = []
 
 def mlock_files():
-    mlocked_files = []
     for f in files:
         if options.verbose:
             print("locking %s" % f, file=sys.stderr)
